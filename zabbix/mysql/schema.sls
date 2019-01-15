@@ -33,7 +33,7 @@
 # Check is there any tables in database.
 # salt.mysql.db_tables(dbname) return 'False' if there is no tables or any other error i.e. failed auth.
 {% set is_db_empty = True -%}
-{% if salt.mysql.db_tables(dbname, **connection_args) -%}
+{% if salt.mysql is defined and salt.mysql.db_tables(dbname, **connection_args) -%}
 {%  set is_db_empty = False -%}
 {% endif -%}
 
