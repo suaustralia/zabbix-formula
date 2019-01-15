@@ -25,52 +25,33 @@
   pkgrepo.managed:
     - name: deb http://repo.zabbix.com/zabbix/{{ zabbix.version_repo }}/{{ salt['grains.get']('os')|lower }} {{ salt['grains.get']('oscodename') }} main
     - file: /etc/apt/sources.list.d/zabbix.list
-    - require:
-      - cmd: {{ id_prefix }}_repo_add_gpg
-
-
-{{ id_prefix }}_repo_add_gpg:
-  cmd.wait:
-    - name: /usr/bin/apt-key add /var/tmp/zabbix-official-repo.gpg
-    - watch:
-      - file: {{ id_prefix }}_repo_gpg_file
-
-
-# GPG key of official Zabbix repo
-{{ id_prefix }}_repo_gpg_file:
-  file.managed:
-    - name: /var/tmp/zabbix-official-repo.gpg
-    - source: {{ files_switch('zabbix',
-                              ['/tmp/zabbix-official-repo.gpg']) }}
-
+    - key_url: https://repo.zabbix.com/zabbix-official-repo.key
+    - clean_file: True
 
 {%- elif salt['grains.get']('os_family') == 'RedHat' and
-         salt['grains.get']('osmajorrelease') >= 6 %}
+         salt['grains.get']('osmajorrelease')|int >= 6 %}
+{%- if zabbix.version_repo|float > 3.0 %}
+{%-   set gpgkey = 'https://repo.zabbix.com/RPM-GPG-KEY-ZABBIX-A14FE591' %}
+{%- else %}
+{%-   set gpgkey = 'https://repo.zabbix.com/RPM-GPG-KEY-ZABBIX-79EA5ED4' %}
+{%- endif %}
+
 {{ id_prefix }}_repo:
   pkgrepo.managed:
     - name: zabbix
     - humanname: Zabbix Official Repository - $basearch
-    - baseurl: http://repo.zabbix.com/zabbix/{{ zabbix.version_repo }}/rhel/{{ grains['osmajorrelease'] }}/$basearch/
+    - baseurl: http://repo.zabbix.com/zabbix/{{ zabbix.version_repo }}/rhel/{{ grains['osmajorrelease']|int }}/$basearch/
     - gpgcheck: 1
-    - gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-ZABBIX
-    - require:
-      - file: {{ id_prefix }}_repo_gpg_file
+    - gpgkey: {{ gpgkey }}
 
 {{ id_prefix }}_non_supported_repo:
   pkgrepo.managed:
-    - name: zabbix_non_supported
+    - name: zabbix-non-supported
     - humanname: Zabbix Official Repository non-supported - $basearch
-    - baseurl: http://repo.zabbix.com/non-supported/rhel/{{ grains['osmajorrelease'] }}/$basearch/
+    - baseurl: http://repo.zabbix.com/non-supported/rhel/{{ grains['osmajorrelease']|int }}/$basearch/
     - gpgcheck: 1
-    - gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-ZABBIX
-    - require:
-      - file: {{ id_prefix }}_repo_gpg_file
+    - gpgkey: https://repo.zabbix.com/RPM-GPG-KEY-ZABBIX-79EA5ED4
 
-{{ id_prefix }}_repo_gpg_file:
-  file.managed:
-    - name: /etc/pki/rpm-gpg/RPM-GPG-KEY-ZABBIX
-    - source: {{ files_switch('zabbix',
-                              ['/tmp/zabbix-official-repo.gpg']) }}
 {%- else %}
 {{ id_prefix }}_repo: {}
 {%- endif %}

@@ -2,19 +2,20 @@
 {% set settings = salt['pillar.get']('zabbix', {}) -%}
 
 
-zabbix_user:
+zabbix-formula_zabbix_user:
   user.present:
     - name: {{ zabbix.user }}
-    - gid_from_name: True
-    - groups: {{ settings.get('user_groups', []) }}
+    - gid: {{ zabbix.group }}
+    - optional_groups: {{ settings.get('user_groups', []) }}
     # Home directory should be created by pkg scripts
     - createhome: False
-    - shell: /sbin/nologin
+    - shell: {{ zabbix.shell }}
     - system: True
     - require:
-      - group: zabbix_group
+      - group: zabbix-formula_zabbix_group
 
 
-zabbix_group:
+zabbix-formula_zabbix_group:
   group.present:
     - name: {{ zabbix.group }}
+    - system: True

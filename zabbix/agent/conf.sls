@@ -15,4 +15,4 @@ include:
     - require:
       - pkg: zabbix-agent
     - watch_in:
-      - service: zabbix-agent
+      - module: zabbix-agent-restart
