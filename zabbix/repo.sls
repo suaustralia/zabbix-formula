@@ -1,6 +1,4 @@
 {% from "zabbix/map.jinja" import zabbix with context -%}
-{% from "zabbix/macros.jinja" import files_switch with context -%}
-
 
 # Zabbix official repo releases a deb package that sets a zabbix.list apt
 # sources. Here we do the same as that package does, including the PGP key for
@@ -21,9 +19,12 @@
 
 
 {% if salt['grains.get']('os_family') == 'Debian' -%}
+{{ id_prefix }}_apt-transport-https:
+  pkg.installed:
+    - name: apt-transport-https
 {{ id_prefix }}_repo:
   pkgrepo.managed:
-    - name: deb http://repo.zabbix.com/zabbix/{{ zabbix.version_repo }}/{{ salt['grains.get']('os')|lower }} {{ salt['grains.get']('oscodename') }} main
+    - name: deb https://repo.zabbix.com/zabbix/{{ zabbix.version_repo }}/{{ salt['grains.get']('os')|lower }} {{ salt['grains.get']('oscodename') }} main
     - file: /etc/apt/sources.list.d/zabbix.list
     - key_url: https://repo.zabbix.com/zabbix-official-repo.key
     - clean_file: True
@@ -51,6 +52,16 @@
     - baseurl: http://repo.zabbix.com/non-supported/rhel/{{ grains['osmajorrelease']|int }}/$basearch/
     - gpgcheck: 1
     - gpgkey: https://repo.zabbix.com/RPM-GPG-KEY-ZABBIX-79EA5ED4
+
+{%- elif salt['grains.get']('os_family') == 'Suse' %}
+{{ id_prefix }}_repo:
+  pkgrepo.managed:
+    - name: zabbix
+    - humanname: "Zabbix Official Repository"
+    - baseurl: https://repo.zabbix.com/zabbix/{{ zabbix.version_repo }}/sles/{{ grains['osmajorrelease'] }}/x86_64/
+    - gpgcheck: 1
+    - gpgkey: https://repo.zabbix.com/zabbix/{{ zabbix.version_repo }}/sles/{{ grains['osmajorrelease'] }}/x86_64/repodata/repomd.xml.key
+    - gpgautoimport: True
 
 {%- else %}
 {{ id_prefix }}_repo: {}
