@@ -11,6 +11,9 @@
 # osfingermap: {}
 ---
 # os: Debian
+Debian-13:
+  repo_signedby: signedby=/etc/apt/keyrings/zabbix.gpg
+  repo_aptkey: false
 Debian-12:
   repo_signedby: signedby=/etc/apt/keyrings/zabbix.gpg
   repo_aptkey: false
